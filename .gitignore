@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+*.app/
+.env
+.env.*
+!.env.example
+data/
+fitapp-backup*.json
+*.db
+*.sqlite*
+.DS_Store
+.idea/
+.vscode/
+*.log

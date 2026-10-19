@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitApp — Tu compañero fitness</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Timer Overlay ─────────────────────────────────────────────────────── -->
+  <div id="timer-overlay" class="hidden">
+    <div class="timer-container">
+      <div class="timer-header">
+        <div class="timer-progress-bar">
+          <div id="timer-progress-fill"></div>
+        </div>
+        <span id="timer-step-label">Paso 1 de 40</span>
+      </div>
+
+      <div class="timer-section-label" id="timer-section-label">Calentamiento</div>
+      <div class="timer-exercise" id="timer-exercise-name">Saltando cuerda</div>
+
+      <div class="timer-clock" id="timer-clock">02:00</div>
+
+      <div class="timer-rep-container hidden" id="timer-rep-container">
+        <div class="timer-reps" id="timer-reps">25 reps</div>
+        <button class="btn-primary btn-large" id="btn-rep-done">✓ Listo</button>
+        <div class="rep-log-row">
+          <span class="text-muted text-sm">Reps completadas:</span>
+          <input type="number" id="rep-actual-input" min="0" max="200" placeholder="—" class="rep-actual-input">
+        </div>
+      </div>
+
+      <div class="timer-next" id="timer-next">Próximo: —</div>
+
+      <div class="timer-controls">
+        <button class="btn-secondary" id="btn-prev">← Anterior</button>
+        <button class="btn-primary" id="btn-pause-play">⏸ Pausar</button>
+        <button class="btn-secondary" id="btn-skip">⏭ Saltar</button>
+      </div>
+
+      <button class="btn-danger btn-small" id="btn-exit-timer">✕ Salir del entreno</button>
+    </div>
+  </div>
+
+  <!-- ── Timer Complete ────────────────────────────────────────────────────── -->
+  <div id="timer-complete" class="hidden">
+    <div class="complete-container">
+      <div class="complete-icon">🏆</div>
+      <h2>¡Entreno Completado!</h2>
+      <div id="complete-stats"></div>
+      <button class="btn-primary btn-large" id="btn-register-workout">✅ Registrar Entreno</button>
+      <button class="btn-secondary btn-small mt-top-8" id="btn-dismiss-complete">Cerrar sin registrar</button>
+    </div>
+  </div>
+
+  <!-- ── Sidebar Navigation ────────────────────────────────────────────────── -->
+  <aside id="sidebar">
+    <div class="sidebar-brand">
+      <span>💪</span>
+      <span>FitApp</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-tab active" data-section="inicio">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Inicio</span>
+      </button>
+      <button class="nav-tab" data-section="entreno">
+        <span class="nav-icon">💪</span>
+        <span class="nav-label">Entreno</span>
+      </button>
+      <button class="nav-tab" data-section="nutricion">
+        <span class="nav-icon">🥗</span>
+        <span class="nav-label">Nutrición</span>
+      </button>
+      <button class="nav-tab" data-section="despensa">
+        <span class="nav-icon">🛒</span>
+        <span class="nav-label">Despensa</span>
+      </button>
+      <button class="nav-tab" data-section="perfil">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Perfil</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="theme-toggle" id="btn-theme-toggle" title="Cambiar tema">
+        <span id="theme-icon">☀️</span>
+        <span id="theme-label">Modo claro</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main Content ──────────────────────────────────────────────────────── -->
+  <div id="main-content">
+
+    <!-- ─────────────────── SECCIÓN: INICIO ─────────────────── -->
+    <section id="section-inicio" class="section">
+      <header class="section-header">
+        <div class="flex-between">
+          <h1 id="greeting">¡Hola!</h1>
+        </div>
+        <span id="today-date" class="text-muted text-sm"></span>
+      </header>
+
+      <div id="reminder-banner" class="hidden">
+        <div class="reminder-content">
+          <span class="reminder-icon">🏋️</span>
+          <div>
+            <strong>¡Ya pasaron 2 meses!</strong>
+            <p>Es hora de agregar el Día C con ejercicios más difíciles. Abrí Claude Code y pedile que actualice tu rutina.</p>
+          </div>
+          <button id="btn-dismiss-reminder" class="btn-icon">✕</button>
+        </div>
+      </div>
+
+      <div id="profile-prompt" class="card card-accent hidden">
+        <p class="mb-12-px">👋 <strong>¡Bienvenido a FitApp!</strong> Completá tu perfil para personalizar tu experiencia.</p>
+        <button class="btn-primary">Completar Perfil</button>
+      </div>
+
+      <div id="dashboard-content">
+        <div class="card" id="card-workout-today"></div>
+        <div class="card" id="card-streak"></div>
+        <div class="card" id="card-week"></div>
+        <div class="card" id="card-stats"></div>
+        <div class="card" id="card-weight"></div>
+      </div>
+    </section>
+
+    <!-- ─────────────────── SECCIÓN: ENTRENO ─────────────────── -->
+    <section id="section-entreno" class="section hidden">
+      <header class="section-header">
+        <h1>Entreno</h1>
+        <span class="text-muted text-sm">Rutina personalizada · ~55 min</span>
+      </header>
+
+      <div id="workout-routine-view">
+        <div class="workout-layout">
+          <div class="workout-col-main">
+            <div class="card">
+              <div class="routine-header">
+                <div>
+                  <h3 class="mb-4-px">Tu Rutina Completa</h3>
+                  <p class="text-muted text-sm">Cardio · Boxeo · Fuerza · Core</p>
+                </div>
+                <div class="workout-controls">
+                  <div class="workout-control">
+                    <label for="day-type-select" class="text-muted text-sm">Tipo:</label>
+                    <select id="day-type-select">
+                      <option value="A">Fuerza</option>
+                      <option value="B">Cardio y Boxeo</option>
+                    </select>
+                  </div>
+                  <div class="workout-control">
+                    <label for="rounds-select" class="text-muted text-sm">Rondas:</label>
+                    <select id="rounds-select">
+                      <option value="1">1</option>
+                      <option value="2" selected>2</option>
+                      <option value="3">3</option>
+                    </select>
+                  </div>
+                  <div id="rounds-suggestion"></div>
+                </div>
+              </div>
+              <div id="day-type-badge-container"></div>
+              <div id="rest-day-msg" class="hidden" style="margin-bottom:8px"></div>
+              <button class="btn-primary btn-large btn-full" id="btn-start-workout">🎯 Iniciar Entreno</button>
+            </div>
+            <div id="workout-routine-detail"></div>
+          </div>
+
+          <div class="workout-col-side">
+            <div class="card">
+              <h3>Historial — Últimos 3 meses</h3>
+              <div id="training-calendar"></div>
+              <div class="flex-between mt-8">
+                <span class="text-xs text-success">● Entrenado</span>
+                <span class="text-xs text-muted">● Descanso</span>
+                <span class="text-xs text-border">— Pendiente</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────── SECCIÓN: NUTRICIÓN ─────────────────── -->
+    <section id="section-nutricion" class="section hidden">
+      <header class="section-header">
+        <h1>Nutrición</h1>
+      </header>
+
+      <div class="tabs-inner">
+        <button class="tab-inner active" data-tab="plan-semanal">Plan Semanal</button>
+        <button class="tab-inner" data-tab="seguimiento">Hoy</button>
+      </div>
+
+      <div id="tab-plan-semanal" class="tab-content active">
+        <div class="card">
+          <div class="plan-header">
+            <button class="btn-icon" id="btn-week-prev">←</button>
+            <span id="week-label" class="font-bold">Esta semana</span>
+            <button class="btn-icon" id="btn-week-next">→</button>
+          </div>
+          <button class="btn-primary btn-full" id="btn-generate-plan">⚡ Generar Plan Semanal</button>
+        </div>
+        <div id="weekly-plan-container"></div>
+      </div>
+
+      <div id="tab-seguimiento" class="tab-content">
+        <div class="card" id="daily-macros-card"></div>
+        <div class="card" id="daily-meals-card"></div>
+      </div>
+    </section>
+
+    <!-- ─────────────────── SECCIÓN: DESPENSA ─────────────────── -->
+    <section id="section-despensa" class="section hidden">
+      <header class="section-header">
+        <h1>Despensa</h1>
+      </header>
+
+      <div class="tabs-inner">
+        <button class="tab-inner active" data-tab="inventario">Mi Despensa</button>
+        <button class="tab-inner" data-tab="compras">Lista de Compras</button>
+        <button class="tab-inner" data-tab="no-tolero">No tolero</button>
+      </div>
+
+      <div id="tab-inventario" class="tab-content active">
+        <div class="card">
+          <div class="input-row">
+            <input type="text" id="pantry-item-name" placeholder="Ingrediente*" style="flex:2">
+            <input type="text" id="pantry-item-detail" placeholder="Detalle (corte, marca...)" style="flex:1.5">
+            <input type="number" id="pantry-item-qty" class="input-qty" placeholder="Cant." step="0.1" min="0">
+            <select id="pantry-item-unit" class="input-unit">
+              <option value="">Unidad</option>
+              <option value="g">g</option>
+              <option value="kg">kg</option>
+              <option value="ml">ml</option>
+              <option value="L">L</option>
+              <option value="unidades">unidades</option>
+              <option value="botellas 1L">botellas 1L</option>
+              <option value="botellas 500ml">botellas 500ml</option>
+              <option value="paquetes">paquetes</option>
+              <option value="tazas">tazas</option>
+              <option value="cdas">cdas</option>
+            </select>
+            <button class="btn-primary" id="btn-add-pantry">Agregar</button>
+          </div>
+        </div>
+        <div id="pantry-list-container"></div>
+      </div>
+
+      <div id="tab-compras" class="tab-content">
+        <div class="card">
+          <h3 style="margin-bottom:12px">📝 Mi lista de compras</h3>
+          <div class="input-row">
+            <input type="text" id="manual-item-input" placeholder="Agregar ítem a la lista..." style="flex:1">
+            <button class="btn-primary" id="btn-add-manual">+ Agregar</button>
+          </div>
+          <div id="manual-items-list" style="margin-top:12px"></div>
+        </div>
+        <div id="shopping-list-container"></div>
+      </div>
+
+      <div id="tab-no-tolero" class="tab-content">
+        <div class="card">
+          <div class="input-row">
+            <input type="text" id="dislike-name" placeholder="Ingrediente que no tolerás...">
+            <select id="dislike-reason" style="width:160px;flex-shrink:0">
+              <option value="no_gusta">No me gusta</option>
+              <option value="intolerancia">Intolerancia</option>
+              <option value="alergia">Alergia</option>
+            </select>
+            <button class="btn-primary" id="btn-add-dislike">Agregar</button>
+          </div>
+        </div>
+        <div id="disliked-list-container"></div>
+        <div id="dislike-warning"></div>
+      </div>
+    </section>
+
+    <!-- ─────────────────── SECCIÓN: PERFIL ─────────────────── -->
+    <section id="section-perfil" class="section hidden">
+      <header class="section-header">
+        <h1>Mi Perfil</h1>
+      </header>
+
+      <div id="onboarding-msg" class="card card-accent hidden">
+        <p>👋 <strong>¡Bienvenido a FitApp!</strong> Completá tus datos para empezar. Los usamos para calcular tus objetivos de calorías y proteínas.</p>
+      </div>
+
+      <div class="profile-grid">
+        <div class="profile-col-left">
+          <div class="card">
+            <h3>Datos Personales</h3>
+            <form id="profile-form">
+              <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" id="input-name" placeholder="Tu nombre" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label>Peso actual (kg)</label>
+                <input type="number" id="input-weight" step="0.1" min="40" max="250" placeholder="ej: 82.5">
+              </div>
+              <div class="form-group">
+                <label>Altura (cm)</label>
+                <input type="number" id="input-height" min="100" max="250" placeholder="ej: 178">
+              </div>
+              <div class="form-group">
+                <label>Edad (años)</label>
+                <input type="number" id="input-age" min="10" max="100" placeholder="ej: 32">
+              </div>
+              <div class="form-group">
+                <label>Género</label>
+                <select id="input-gender">
+                  <option value="masculino">Masculino</option>
+                  <option value="femenino">Femenino</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Fecha inicio del programa</label>
+                <input type="date" id="input-start-date">
+              </div>
+              <div class="form-group">
+                <label>Peso objetivo (kg)</label>
+                <input type="number" id="input-target-weight" step="0.1" min="40" max="250" placeholder="ej: 75">
+              </div>
+              <button type="submit" class="btn-primary btn-full">💾 Guardar Perfil</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>Registrar Peso</h3>
+            <p class="text-muted text-sm mb-10-px">Registrá tu peso periódicamente para seguir tu progreso.</p>
+            <div class="input-row">
+              <input type="number" id="input-new-weight" placeholder="Nuevo peso (kg)" step="0.1" min="20" max="300">
+              <button class="btn-primary" id="btn-log-weight">Registrar</button>
+            </div>
+          </div>
+
+          <div class="card" id="data-management-card">
+            <h3>Datos y respaldo</h3>
+            <p class="text-muted text-sm" style="margin-bottom:16px">Exportá tus datos para hacer un backup o para migrar desde Safari.</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <button class="btn-secondary" id="btn-export-data">📤 Exportar datos</button>
+              <button class="btn-secondary" id="btn-import-data">📥 Importar datos</button>
+            </div>
+            <p id="data-msg" class="text-muted text-sm" style="margin-top:10px;display:none"></p>
+          </div>
+        </div>
+
+        <div class="profile-col-right">
+          <div class="card hidden" id="tdee-card">
+            <h3>Tus Objetivos</h3>
+            <div id="tdee-display"></div>
+          </div>
+
+          <div class="card" id="measurements-card">
+            <h3>Medidas corporales</h3>
+            <p class="text-muted text-sm" style="margin-bottom:14px">Registrá tus medidas para seguir tu composición física.</p>
+            <div class="measurements-grid" id="measurements-form">
+              <div class="measurement-input-group">
+                <label>Cintura (cm)</label>
+                <input type="number" id="m-waist" step="0.5" min="50" max="200" placeholder="—">
+              </div>
+              <div class="measurement-input-group">
+                <label>Pecho (cm)</label>
+                <input type="number" id="m-chest" step="0.5" min="50" max="200" placeholder="—">
+              </div>
+              <div class="measurement-input-group">
+                <label>Brazo derecho (cm)</label>
+                <input type="number" id="m-arm" step="0.5" min="20" max="80" placeholder="—">
+              </div>
+              <div class="measurement-input-group">
+                <label>Pierna (muslo, cm)</label>
+                <input type="number" id="m-thigh" step="0.5" min="30" max="100" placeholder="—">
+              </div>
+            </div>
+            <button class="btn-primary" id="btn-save-measurements" style="margin-top:14px">Guardar medidas</button>
+            <div id="measurements-history" style="margin-top:16px"></div>
+          </div>
+
+          <div class="card">
+            <h3>Progreso de Peso</h3>
+            <div id="weight-chart-container">
+              <canvas id="weight-chart" class="canvas-chart"></canvas>
+              <p id="weight-chart-empty" class="text-muted text-center chart-empty-msg">
+                Registrá más datos para ver tu progreso
+              </p>
+            </div>
+            <div id="weight-history"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- end main-content -->
+
+  <!-- ── Recipe Detail Overlay ───────────────────────────────────────────────── -->
+  <div id="recipe-overlay" class="hidden">
+    <div class="recipe-modal">
+      <button class="btn-icon recipe-close" id="btn-close-recipe">✕</button>
+      <div id="recipe-modal-content"></div>
+    </div>
+  </div>
+
+</div><!-- end app -->
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- App Scripts (order matters: data → storage → modules → app) -->
+<script src="js/data.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/workout.js"></script>
+<script src="js/nutrition.js"></script>
+<script src="js/pantry.js"></script>
+<script src="js/shopping.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
